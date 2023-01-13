@@ -4,7 +4,7 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use message::PubSubMessage;
 use std::{env, net::SocketAddr, str::FromStr};
-use tracing::{debug, info, Level};
+use tracing::{debug, event_enabled, info, Level};
 use tracing_subscriber::{prelude::*, EnvFilter};
 
 #[tokio::main]
@@ -42,6 +42,18 @@ fn env_or_default<F: FromStr>(key: &str, default: &str) -> Result<F, F::Err> {
     env::var(key).unwrap_or_else(|_| default.to_string()).parse()
 }
 
-async fn handler(Json(payload): Json<PubSubMessage>) {
-    debug!(payload = serde_json::to_string(&payload).unwrap(), "{payload:#?}");
+async fn handler(Json(psm): Json<PubSubMessage>) -> Result<String, ()> {
+    let message = match std::env::var("GCP_PROJECT") {
+        Ok(project_name) => psm.message.with_project_name(project_name),
+        _ => psm.message,
+    };
+    let formatted = message.fmt();
+
+    if event_enabled!(Level::DEBUG) {
+        debug!(msg = format_args!("{:#?}", message), subscription = psm.subscription, "{formatted}");
+    } else {
+        info!("{formatted}");
+    }
+
+    Ok(formatted)
 }

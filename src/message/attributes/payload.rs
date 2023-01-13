@@ -1,14 +1,15 @@
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 /// An object carrying notification-specific information.
-#[derive(Debug, Deserialize, Serialize)]
-#[allow(clippy::enum_variant_names)]
+#[derive(Debug, Default, Deserialize, Serialize)]
 pub enum Payload {
     SecurityBulletinEvent(SecurityBulletinEvent),
     UpgradeAvailableEvent(UpgradeAvailableEvent),
     UpgradeEvent(UpgradeEvent),
-    UnknownEvent(Value),
+    UnknownType(String),
+
+    #[default]
+    None,
 }
 
 /// SecurityBulletinEvent is a notification sent to customers when
@@ -83,6 +84,17 @@ pub enum ReleaseChannel {
     Rapid,
     Regular,
     Stable,
+}
+
+impl std::fmt::Display for ReleaseChannel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            ReleaseChannel::Unspecified => "UNSPECIFIED",
+            ReleaseChannel::Rapid => "RAPID",
+            ReleaseChannel::Regular => "REGULAR",
+            ReleaseChannel::Stable => "STABLE",
+        })
+    }
 }
 
 /// UpgradeEvent is a notification sent when a resource is upgrading.
