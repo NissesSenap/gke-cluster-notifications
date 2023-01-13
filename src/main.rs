@@ -1,6 +1,8 @@
+mod message;
+
 use axum::routing::{get, post};
 use axum::{Json, Router};
-use serde_json::Value;
+use message::PubSubMessage;
 use std::{env, net::SocketAddr, str::FromStr};
 use tracing::{debug, info, Level};
 use tracing_subscriber::{prelude::*, EnvFilter};
@@ -40,6 +42,6 @@ fn env_or_default<F: FromStr>(key: &str, default: &str) -> Result<F, F::Err> {
     env::var(key).unwrap_or_else(|_| default.to_string()).parse()
 }
 
-async fn handler(Json(payload): Json<Value>) {
-    debug!(payload = serde_json::to_string(&payload).unwrap(), "message received");
+async fn handler(Json(payload): Json<PubSubMessage>) {
+    debug!(payload = serde_json::to_string(&payload).unwrap(), "{payload:#?}");
 }
