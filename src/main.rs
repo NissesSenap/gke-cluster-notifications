@@ -13,8 +13,8 @@ async fn main() {
         .init();
 
     let listen_addr = SocketAddr::new(
-        env_or_default("LISTEN_HOST", "127.0.0.1").expect("LISTEN_HOST should be an IP address"),
-        env_or_default("LISTEN_PORT", "8080").expect("LISTEN_PORT should be a number"),
+        env_or_default("HOST", "0.0.0.0").expect("LISTEN_HOST should be an IP address"),
+        env_or_default("PORT", "8080").expect("LISTEN_PORT should be a number"),
     );
     info!(listen_addr = listen_addr.to_string(), "starting server");
 
