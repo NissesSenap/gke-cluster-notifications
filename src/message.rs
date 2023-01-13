@@ -26,7 +26,7 @@ where
     D: Deserializer<'de>,
 {
     String::deserialize(deserializer)
-        .and_then(|str| BASE64_STANDARD.decode(&str).map_err(|e| de::Error::custom(e)))
-        .map(|bytes| String::from_utf8(bytes))
-        .and_then(|res| res.or_else(|e| Err(de::Error::custom(e))))
+        .and_then(|str| BASE64_STANDARD.decode(str).map_err(de::Error::custom))
+        .map(String::from_utf8)
+        .and_then(|res| res.map_err(de::Error::custom))
 }
