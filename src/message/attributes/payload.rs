@@ -1,7 +1,9 @@
-use serde::{Deserialize, Serialize};
+use std::fmt::Display;
+
+use serde::{de, Deserialize};
 
 /// An object carrying notification-specific information.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize)]
 pub enum Payload {
     SecurityBulletinEvent(SecurityBulletinEvent),
     UpgradeAvailableEvent(UpgradeAvailableEvent),
@@ -12,9 +14,31 @@ pub enum Payload {
     None,
 }
 
+impl Payload {
+    pub fn as_upgrade_available_event(&self) -> Option<&UpgradeAvailableEvent> {
+        if let Self::UpgradeAvailableEvent(v) = self {
+            Some(v)
+        } else {
+            None
+        }
+    }
+}
+
+impl Display for Payload {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Payload::SecurityBulletinEvent(_) => stringify!(SecurityBulletinEvent),
+            Payload::UpgradeAvailableEvent(_) => stringify!(UpgradeAvailableEvent),
+            Payload::UpgradeEvent(_) => stringify!(UpgradeEvent),
+            Payload::UnknownType(_) => stringify!(UnknownType),
+            Payload::None => stringify!(None),
+        })
+    }
+}
+
 /// SecurityBulletinEvent is a notification sent to customers when
 /// a security bulletin has been posted that they are vulnerable to.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct SecurityBulletinEvent {
     /// The GKE minor versions affected by this vulnerability.
@@ -57,8 +81,25 @@ pub struct SecurityBulletinEvent {
     pub suggested_upgrade_target: String,
 }
 
+impl SecurityBulletinEvent {
+    pub fn resource_type_affected(&self) -> String {
+        match self.resource_type_affected.as_str() {
+            "RESOURCE_TYPE_CONTROLPLANE" => "Control Plane".to_string(),
+            "RESOURCE_TYPE_NODE" => "Node".to_string(),
+            rt => rt.to_lowercase().trim_start_matches("resource_type_").to_string(),
+        }
+    }
+
+    pub fn manual_steps_required(&self) -> &str {
+        match self.manual_steps_required {
+            true => "Yes",
+            false => "No",
+        }
+    }
+}
+
 /// UpgradeAvailableEvent is sent when a new available version is released.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct UpgradeAvailableEvent {
     /// The release channel of the version.
@@ -69,14 +110,25 @@ pub struct UpgradeAvailableEvent {
     pub resource: Option<String>,
 
     /// The resource type of the release version.
-    pub resource_type: String,
+    pub resource_type: ResourceType,
 
     /// The release version available for upgrade.
     pub version: String,
 }
 
+impl UpgradeAvailableEvent {
+    pub fn node_pool_name(&self) -> Option<String> {
+        if let Some(resource) = &self.resource {
+            if let Some((_, name)) = resource.split_once("nodePools/") {
+                return Some(name.to_string());
+            }
+        }
+        None
+    }
+}
+
 /// Indicates which release channel a cluster is subscribed to.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize)]
 #[serde(tag = "channel", rename_all = "UPPERCASE")]
 pub enum ReleaseChannel {
     #[default]
@@ -98,7 +150,7 @@ impl std::fmt::Display for ReleaseChannel {
 }
 
 /// UpgradeEvent is a notification sent when a resource is upgrading.
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct UpgradeEvent {
     /// The current version before the upgrade.
@@ -115,8 +167,61 @@ pub struct UpgradeEvent {
     pub resource: Option<String>,
 
     /// The resource type that is upgrading.
-    pub resource_type: String,
+    pub resource_type: ResourceType,
 
     /// The target version for the upgrade.
     pub target_version: String,
+}
+
+impl UpgradeEvent {
+    pub fn node_pool_name(&self) -> Option<String> {
+        if let Some(resource) = &self.resource {
+            if let Some((_, name)) = resource.split_once("nodePools/") {
+                return Some(name.to_string());
+            }
+        }
+        None
+    }
+}
+
+#[derive(Debug)]
+pub enum ResourceType {
+    ControlPlane,
+    NodePool,
+    Unknown(String),
+}
+
+impl Default for ResourceType {
+    fn default() -> Self {
+        ResourceType::Unknown("UPGRADE_RESOURCE_TYPE_UNSPECIFIED".to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for ResourceType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct ResourceTypeVisitor;
+        impl<'de> de::Visitor<'de> for ResourceTypeVisitor {
+            type Value = ResourceType;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("enum ResourceType")
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(match v {
+                    "MASTER" => ResourceType::ControlPlane,
+                    "NODE_POOL" => ResourceType::NodePool,
+                    _ => ResourceType::Unknown(v.to_string()),
+                })
+            }
+        }
+
+        deserializer.deserialize_identifier(ResourceTypeVisitor)
+    }
 }

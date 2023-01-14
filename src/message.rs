@@ -1,20 +1,21 @@
-mod attributes;
+pub mod attributes;
+pub mod slack;
 
 use base64::prelude::*;
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::{de, Deserialize, Deserializer};
 
 use self::attributes::Attributes;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize)]
 pub struct PubSubMessage {
     pub message: Message,
     pub subscription: String,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 pub struct Message {
-    attributes: Attributes,
+    pub attributes: Attributes,
     message_id: String,
     publish_time: String,
 
@@ -28,7 +29,7 @@ impl Message {
     }
 
     pub fn fmt(&self) -> String {
-        match self.attributes.message() {
+        match self.attributes.log_message() {
             Ok(msg) => msg,
             Err(err) => {
                 if self.data.is_empty() {
@@ -54,17 +55,18 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::message::slack::SlackMessage;
 
-    struct MessageTestCase {
-        description: &'static str,
-        message_json: &'static str,
-        log_message: &'static str,
-        project_name: Option<&'static str>,
+    pub struct MessageTestCase {
+        pub description: &'static str,
+        pub message_json: &'static str,
+        pub log_message: &'static str,
+        pub project_name: Option<&'static str>,
     }
 
     #[test]
     fn deserialize() {
-        for test in MESSAGE_TEST_CASE {
+        for test in MESSAGE_TEST_CASES {
             let mut message = match serde_json::from_str::<Message>(test.message_json) {
                 Ok(m) => m,
                 Err(e) => panic!("{} failed: {e} {:#?}", test.description, test.message_json),
@@ -79,7 +81,73 @@ mod tests {
         }
     }
 
-    const MESSAGE_TEST_CASE: [MessageTestCase; 14] = [
+    #[test]
+    fn slack_plain_text() {
+        #[derive(serde::Serialize)]
+        struct Blocks {
+            blocks: Vec<serde_json::Value>,
+        }
+
+        for test in MESSAGE_TEST_CASES {
+            let mut message = match serde_json::from_str::<Message>(test.message_json) {
+                Ok(m) => m,
+                Err(e) => panic!("{} failed: {e} {:#?}", test.description, test.message_json),
+            };
+
+            if let Some(project_name) = test.project_name {
+                message = message.with_project_name(project_name.to_string());
+            }
+
+            println!("{}\n", message.slack_plain_text());
+        }
+    }
+
+    #[test]
+    fn slack_block_text() {
+        #[derive(serde::Serialize)]
+        struct Blocks {
+            blocks: Vec<serde_json::Value>,
+        }
+
+        for test in MESSAGE_TEST_CASES {
+            let mut message = match serde_json::from_str::<Message>(test.message_json) {
+                Ok(m) => m,
+                Err(e) => panic!("{} failed: {e} {:#?}", test.description, test.message_json),
+            };
+
+            if let Some(project_name) = test.project_name {
+                message = message.with_project_name(project_name.to_string());
+            }
+
+            println!("{}\n", message.slack_block_text());
+        }
+    }
+
+    #[test]
+    fn slack_blocks() {
+        #[derive(serde::Serialize)]
+        struct Blocks {
+            blocks: Vec<serde_json::Value>,
+        }
+
+        for test in MESSAGE_TEST_CASES {
+            let mut message = match serde_json::from_str::<Message>(test.message_json) {
+                Ok(m) => m,
+                Err(e) => panic!("{} failed: {e} {:#?}", test.description, test.message_json),
+            };
+
+            if let Some(project_name) = test.project_name {
+                message = message.with_project_name(project_name.to_string());
+            }
+
+            println!(
+                "{}\n",
+                serde_json::to_string(&Blocks { blocks: message.slack_blocks() }).unwrap()
+            );
+        }
+    }
+
+    pub const MESSAGE_TEST_CASES: [MessageTestCase; 14] = [
         // SecurityBulletinEvent
         MessageTestCase {
             description: "SecurityBulletinEvent:ControlPlane",
