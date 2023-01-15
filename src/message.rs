@@ -35,6 +35,10 @@ impl Message {
         Self { attributes: self.attributes.with_project_name(project_name), ..self }
     }
 
+    pub fn is_invalid(&self) -> bool {
+        self.data.is_empty() || self.attributes.is_invalid()
+    }
+
     pub fn log_entry(&self) -> String {
         match self.attributes.log_message() {
             Ok(msg) => msg,
@@ -85,10 +89,8 @@ impl Message {
                     format!("{} unknown resource type {str}", attr.cluster_name)
                 }
             },
-            Payload::UnknownType(_) => {
-                format!("{} received event of unknown type", attr.cluster_name)
-            }
-            Payload::None => "empty or invalid payload".to_string(),
+            _ if self.is_invalid() => "empty or invalid payload".to_string(),
+            _ => format!("{} received event of unknown type", attr.cluster_name),
         }
     }
 
@@ -127,10 +129,8 @@ impl Message {
                     attr.cluster_name, attr.payload
                 ),
             },
-            Payload::UnknownType(_) => {
-                format!("`{}` received event of unknown type", attr.cluster_name)
-            }
-            Payload::None => "empty or invalid payload".to_string(),
+            _ if self.is_invalid() => "empty or invalid payload".to_string(),
+            _ => format!("`{}` received event of unknown type", attr.cluster_name),
         }
     }
 }

@@ -1,32 +1,41 @@
+use reqwest::StatusCode;
 use serde::Serialize;
 use serde_json::{json, Value};
 
 use super::{attributes::payload::Payload, Message};
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 pub struct WebhookMessage {
     text: String,
     blocks: Vec<Value>,
 }
 
-impl From<&Message> for WebhookMessage {
-    fn from(message: &Message) -> Self {
-        WebhookMessage { text: message.plain_text(), blocks: message.slack_blocks() }
+impl WebhookMessage {
+    pub async fn post(&self, webhook: String) -> Result<String, String> {
+        let body = serde_json::to_string(self).map_err(|e| e.to_string())?;
+        let resp = reqwest::Client::new()
+            .post(webhook)
+            .body(body)
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+
+        let status = resp.status();
+        let text = resp.text().await.map_err(|e| e.to_string())?;
+
+        match status {
+            StatusCode::OK => Ok(text),
+            _ => Err(text),
+        }
     }
-}
 
-pub trait SlackMessage {
-    fn slack_blocks(&self) -> Vec<Value>;
-}
-
-impl SlackMessage for Message {
-    fn slack_blocks(&self) -> Vec<Value> {
-        let attr = &self.attributes;
+    fn blocks(message: &Message) -> Vec<Value> {
+        let attr = &message.attributes;
         let mut result = vec![];
 
         result.push(json!({
             "type": "section",
-            "text": { "type": "mrkdwn", "text": format_args!(":gear: {}", self.markdown()) },
+            "text": { "type": "mrkdwn", "text": format_args!(":gear: {}", message.markdown()) },
         }));
 
         match &attr.payload {
@@ -109,7 +118,7 @@ impl SlackMessage for Message {
                     "type": "section",
                     "fields": [
                         { "type": "mrkdwn", "text": format_args!("*Project*\n{}", attr.project_name()) },
-                        { "type": "mrkdwn", "text": format_args!("*Message*\n{}", self.data) },
+                        { "type": "mrkdwn", "text": format_args!("*Message*\n{}", message.data) },
                     ]
                 }));
                 result.push(json!({
@@ -133,15 +142,31 @@ impl SlackMessage for Message {
     }
 }
 
+impl From<&Message> for WebhookMessage {
+    fn from(message: &Message) -> Self {
+        WebhookMessage {
+            text: format!(":gear: {}", message.plain_text()),
+            blocks: WebhookMessage::blocks(message),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::message::tests::test_messages;
 
-    #[test]
-    fn blocks() {
+    #[tokio::test]
+    async fn post() {
         for test in test_messages() {
+            if test.message.is_invalid() {
+                continue;
+            }
             let message: WebhookMessage = (&test.message).into();
+
+            if let Ok(webhook) = std::env::var("SLACK_WEBHOOK") {
+                message.post(webhook).await.unwrap();
+            }
 
             // Print JSON usable in Block Kit Builder preview: https://app.slack.com/block-kit-builder/
             println!("{}\n", json!({ "blocks": message.blocks }));

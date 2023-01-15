@@ -15,5 +15,9 @@ RUN cargo build --release
 
 FROM debian:bullseye-slim
 
+RUN apt-get update \
+    && apt-get install -y ca-certificates \
+    && rm -rf /var/cache/apt/* /var/lib/apt/lists/*
+
 COPY --from=build /app/target/release/gke-cluster-notifications /app/
 CMD ["/app/gke-cluster-notifications"]

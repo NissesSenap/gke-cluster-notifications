@@ -219,6 +219,12 @@
   plain_text: "empty or invalid payload"
   markdown: "empty or invalid payload"
 
+- name: InvalidMessage:MissingTypeUrl
+  message: '{"attributes": {"payload":"{}"}, "data": "bG9yZW0gaXBzdW0="}'
+  log_entry: "Empty or invalid payload: lorem ipsum"
+  plain_text: "empty or invalid payload"
+  markdown: "empty or invalid payload"
+
 - name: InvalidMessage:MissingData
   message: '{"attributes":{"type_url":"SOME_TYPE"}}'
   log_entry: "Empty or invalid payload"

@@ -5,7 +5,7 @@ use axum::{Json, Router};
 use message::slack::WebhookMessage;
 use message::PubSubMessage;
 use std::{env, net::SocketAddr, str::FromStr};
-use tracing::{debug, event_enabled, info, Level};
+use tracing::{debug, error, event_enabled, info, Level};
 use tracing_subscriber::{prelude::*, EnvFilter};
 
 #[tokio::main]
@@ -61,25 +61,42 @@ async fn handler(Json(psm): Json<PubSubMessage>) {
         Ok(project_name) => psm.message.with_project_name(project_name),
         _ => psm.message,
     };
+
     let subscription = psm.subscription;
     let log_entry = message.log_entry();
-    let slack_message;
 
-    // When SLACK_WEBHOOK is set, format message and post to Incoming Webhook
-    if let Ok(_webhook) = std::env::var("SLACK_WEBHOOK") {
-        slack_message = Some(serde_json::to_string::<WebhookMessage>(&(&message).into()).unwrap());
+    if message.is_invalid() {
+        return error!(msg = format!("{:#?}", message), subscription, "{log_entry}");
+    }
 
+    let mut slack_message = None;
+    let mut slack_response = None;
+
+    // When SLACK_WEBHOOK is set, format and post to Incoming Webhook
+    if let Ok(webhook) = std::env::var("SLACK_WEBHOOK") {
         // GKE sends UpgradeAvailableEvent messages for each node pool in a cluster
         // causing quite the flood of messages. These will not be sent to Slack.
         if !message.attributes.is_node_pool_upgrade_available_event() {
-            // TODO Implement posting JSON message to Slack webhook
+            let webhook_message = Into::<WebhookMessage>::into(&message);
+            slack_message = Some(serde_json::to_string(&webhook_message).unwrap());
+            slack_response = match webhook_message.post(webhook).await {
+                Ok(res) => Some(res),
+                Err(err) => {
+                    error!(
+                        msg = format!("{:#?}", message),
+                        subscription, slack_message, "post to webhook failed: {err}"
+                    );
+                    Some(err)
+                }
+            };
         }
-    } else {
-        slack_message = None;
     }
 
     if event_enabled!(Level::DEBUG) {
-        debug!(msg = format_args!("{:#?}", message), subscription, slack_message, "{log_entry}");
+        debug!(
+            msg = format!("{:#?}", message),
+            subscription, slack_message, slack_response, "{log_entry}"
+        );
     } else {
         info!("{log_entry}");
     }

@@ -19,6 +19,10 @@ impl Attributes {
         Self { project_name: Some(project_name), ..self }
     }
 
+    pub fn is_invalid(&self) -> bool {
+        self.type_url.is_empty() || matches!(self.payload, Payload::None)
+    }
+
     pub fn log_message(&self) -> Result<String, String> {
         match &self.payload {
             Payload::SecurityBulletinEvent(p) => Ok(format!(
@@ -60,10 +64,8 @@ impl Attributes {
                     Ok(format!("Unknown resource type `{str}` encountered"))
                 }
             },
-            Payload::UnknownType(_) => {
-                Err(format!("Unknown message type `{}` encountered", self.type_url))
-            }
-            Payload::None => Err("Empty or invalid payload".to_string()),
+            _ if self.is_invalid() => Err("Empty or invalid payload".to_string()),
+            _ => Err(format!("Unknown message type `{}` encountered", self.type_url)),
         }
     }
 
