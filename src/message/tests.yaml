@@ -1,7 +1,7 @@
 ---
 ## SecurityBulletinEvent
-- description: "SecurityBulletinEvent:ControlPlane"
-  message_json: |
+- name: "SecurityBulletinEvent:ControlPlane"
+  message: |
     {
         "attributes": {
             "project_id": "0123456789",
@@ -14,11 +14,13 @@
         "publish_time": "2023-01-13T19:51:24.884Z",
         "data": "U2VjdXJpdHkgQnVsbGV0aW4gR0NQLTIwMjItMDA1IHRoYXQgYWZmZWN0cyB0aGlzIGNsdXN0ZXIgaGFzIGJlZW4gaXNzdWVk"
     }
-  log_message: "Security bulletin GCP-2022-005 affecting projects/test-project/locations/us-central1/clusters/test-cluster has been issued"
+  log_entry: "Security bulletin GCP-2022-005 affecting projects/test-project/locations/us-central1/clusters/test-cluster has been issued"
+  plain_text: "Security bulletin GCP-2022-005 affecting test-cluster has been issued"
+  markdown: "Security bulletin `GCP-2022-005` affecting `test-cluster` has been issued"
   project_name: "test-project"
 
-- description: "SecurityBulletinEvent:Node"
-  message_json: |
+- name: "SecurityBulletinEvent:Node"
+  message: |
     {
         "attributes": {
             "payload": "{\"affectedSupportedMinors\":[\"1.18\",\"1.19\",\"1.20\",\"1.21\",\"1.22\",\"1.23\"],\"briefDescription\":\"A security vulnerability, CVE-2021-43527, has been discovered in any binary that links to the vulnerable versions of libnss3 found in Network Security Services (NSS) versions prior to 3.73 or 3.68.1.\",\"bulletinId\":\"GCP-2022-005\",\"bulletinUri\":\"https://cloud.google.com/kubernetes-engine/docs/security-bulletins#gcp-2022-005\",\"cveIds\":[\"CVE-2021-43527\"],\"patchedVersions\":[\"1.18.20-gke.6101\",\"1.19.16-gke.6100\",\"1.20.15-gke.200\",\"1.21.9-gke.200\",\"1.22.6-gke.600\",\"1.23.3-gke.500\"],\"resourceTypeAffected\":\"RESOURCE_TYPE_NODE\",\"severity\":\"Medium\",\"suggestedUpgradeTarget\":\"1.22.6-gke.1000\"}",
@@ -31,11 +33,13 @@
         "publish_time": "2023-01-13T19:51:24.884Z",
         "data": "U2VjdXJpdHkgQnVsbGV0aW4gR0NQLTIwMjItMDA1IHRoYXQgYWZmZWN0cyB0aGlzIGNsdXN0ZXIgaGFzIGJlZW4gaXNzdWVk"
     }
-  log_message: "Security bulletin GCP-2022-005 affecting projects/test-project/locations/us-central1/clusters/test-cluster has been issued"
+  log_entry: "Security bulletin GCP-2022-005 affecting projects/test-project/locations/us-central1/clusters/test-cluster has been issued"
+  plain_text: "Security bulletin GCP-2022-005 affecting test-cluster has been issued"
+  markdown: "Security bulletin `GCP-2022-005` affecting `test-cluster` has been issued"
   project_name: "test-project"
 
-- description: "SecurityBulletinEvent:ControlPlane:NoSuggestedUpgradeTarget"
-  message_json: |
+- name: "SecurityBulletinEvent:ControlPlane:NoSuggestedUpgradeTarget"
+  message: |
     {
         "attributes": {
             "cluster_location": "us-west1",
@@ -48,11 +52,13 @@
         "publish_time": "2023-01-13T19:51:24.884Z",
         "data": "U2VjdXJpdHkgQnVsbGV0aW4gZ2NwLTIwMjItMDA4IHRoYXQgYWZmZWN0cyB0aGlzIGNsdXN0ZXIgaGFzIGJlZW4gaXNzdWVk"
     }
-  log_message: "Security bulletin gcp-2022-008 affecting projects/0123456789/locations/us-west1/clusters/test-cluster has been issued"
+  log_entry: "Security bulletin gcp-2022-008 affecting projects/0123456789/locations/us-west1/clusters/test-cluster has been issued"
+  plain_text: "Security bulletin gcp-2022-008 affecting test-cluster has been issued"
+  markdown: "Security bulletin `gcp-2022-008` affecting `test-cluster` has been issued"
 
 ## UpgradeAvailableEvent
-- description: "UpgradeAvailableEvent:ControlPlane"
-  message_json: |
+- name: "UpgradeAvailableEvent:ControlPlane"
+  message: |
     {
         "attributes": {
             "project_id": "0123456789",
@@ -65,11 +71,13 @@
         "publish_time": "2023-01-13T19:51:24.884Z",
         "data": "TmV3IG1hc3RlciB2ZXJzaW9uICIxLjIyLjYtZ2tlLjMwMCIgaXMgYXZhaWxhYmxlIGZvciB1cGdyYWRlIGluIHRoZSBSQVBJRCBjaGFubmVsLg=="
     }
-  log_message: "Control plane projects/test-project/locations/us-central1/clusters/test-cluster has new version 1.22.6-gke.300 available for upgrade in the RAPID channel"
+  log_entry: "Control plane projects/test-project/locations/us-central1/clusters/test-cluster has new version 1.22.6-gke.300 available for upgrade in the RAPID channel"
+  plain_text: "test-cluster control plane has new version available 1.22.6-gke.300"
+  markdown: "*`test-cluster`* control plane has new version available"
   project_name: "test-project"
 
-- description: "UpgradeAvailableEvent:NodePool"
-  message_json: |
+- name: "UpgradeAvailableEvent:NodePool"
+  message: |
     {
         "attributes": {
           "cluster_location": "us-central1",
@@ -82,11 +90,13 @@
         "publish_time": "2023-01-13T19:51:24.884Z",
         "data": "TmV3IG5vZGUgdmVyc2lvbiAiMS4yMi42LWdrZS4zMDAiIGlzIGF2YWlsYWJsZSBmb3IgdXBncmFkZSBpbiB0aGUgUkFQSUQgY2hhbm5lbC4="
     }
-  log_message: "Node pool projects/test-project/locations/us-central1/clusters/test-cluster/nodePools/nap-e2-medium-ww57dx1i has new version 1.22.6-gke.300 available for upgrade in the RAPID channel"
+  log_entry: "Node pool projects/test-project/locations/us-central1/clusters/test-cluster/nodePools/nap-e2-medium-ww57dx1i has new version 1.22.6-gke.300 available for upgrade in the RAPID channel"
+  plain_text: "test-cluster node pool nap-e2-medium-ww57dx1i has new version available 1.22.6-gke.300"
+  markdown: "*`test-cluster`* node pool `nap-e2-medium-ww57dx1i` has new version available"
   project_name: "test-project"
 
-- description: "UpgradeAvailableEvent:UnknownResourceType"
-  message_json: |
+- name: "UpgradeAvailableEvent:UnknownResourceType"
+  message: |
     {
         "attributes": {
             "cluster_location": "us-central1",
@@ -99,12 +109,14 @@
         "publish_time": "2023-01-13T19:51:24.884Z",
         "data": "bG9yZW0gaXBzdW0="
     }
-  log_message: "Unknown resource type `SOME_TYPE` encountered"
+  log_entry: "Unknown resource type `SOME_TYPE` encountered"
+  plain_text: "test-cluster unknown resource type SOME_TYPE"
+  markdown: "*`test-cluster`* unknown resource type `SOME_TYPE` encountered on `UpgradeAvailableEvent`"
   project_name: "test-project"
 
 ## UpgradeEvent
-- description: "UpgradeEvent:ControlPlane"
-  message_json: |
+- name: "UpgradeEvent:ControlPlane"
+  message: |
     {
         "attributes": {
             "payload": "{\"currentVersion\":\"1.22.4-gke.1501\",\"operation\":\"operation-1646321640211-5bc1f505\",\"operationStartTime\":\"2022-03-03T15:34:00.211684830Z\",\"resourceType\":\"MASTER\",\"targetVersion\":\"1.22.6-gke.300\"}",
@@ -117,10 +129,12 @@
         "publish_time": "2023-01-13T19:51:24.884Z",
         "data": "TWFzdGVyIGlzIHVwZ3JhZGluZyB0byB2ZXJzaW9uIDEuMjIuNi1na2UuMzAwLg=="
     }
-  log_message: "Control plane projects/0123456789/locations/us-central1/clusters/test-cluster is upgrading from version 1.22.4-gke.1501 to 1.22.6-gke.300"
+  log_entry: "Control plane projects/0123456789/locations/us-central1/clusters/test-cluster is upgrading from version 1.22.4-gke.1501 to 1.22.6-gke.300"
+  plain_text: "test-cluster control plane is upgrading to version 1.22.6-gke.300"
+  markdown: "*`test-cluster`* control plane is upgrading"
 
-- description: "UpgradeEvent:NodePool"
-  message_json: |
+- name: "UpgradeEvent:NodePool"
+  message: |
     {
         "attributes": {
             "payload": "{\"currentVersion\":\"1.22.4-gke.1501\",\"operation\":\"operation-1646323461754-a5e72991\",\"operationStartTime\":\"2022-03-03T16:04:21.754874604Z\",\"resource\":\"projects/test-project/locations/us-central1/clusters/test-cluster/nodePools/nap-e2-medium-ww57dx1i\",\"resourceType\":\"NODE_POOL\",\"targetVersion\":\"1.22.6-gke.300\"}",
@@ -133,10 +147,12 @@
         "publish_time": "2023-01-13T19:51:24.884Z",
         "data": "Tm9kZSBwb29sIHByb2plY3RzL3Rlc3QtcHJvamVjdC9sb2NhdGlvbnMvdXMtY2VudHJhbDEvY2x1c3RlcnMvdGVzdC1jbHVzdGVyL25vZGVQb29scy9uYXAtZTItbWVkaXVtLXd3NTdkeDFpIGlzIHVwZ3JhZGluZyB0byB2ZXJzaW9uIDEuMjIuNi1na2UuMzAwLg=="
     }
-  log_message: "Node pool projects/test-project/locations/us-central1/clusters/test-cluster/nodePools/nap-e2-medium-ww57dx1i is upgrading from 1.22.4-gke.1501 to 1.22.6-gke.300"
+  log_entry: "Node pool projects/test-project/locations/us-central1/clusters/test-cluster/nodePools/nap-e2-medium-ww57dx1i is upgrading from 1.22.4-gke.1501 to 1.22.6-gke.300"
+  plain_text: "test-cluster node pool nap-e2-medium-ww57dx1i is upgrading to version 1.22.6-gke.300"
+  markdown: "*`test-cluster`* node pool `nap-e2-medium-ww57dx1i` is upgrading"
 
-- description: "UpgradeEvent:UnknownResourceType"
-  message_json: |
+- name: "UpgradeEvent:UnknownResourceType"
+  message: |
     {
         "attributes": {
             "payload": "{\"resourceType\":\"SOME_TYPE\",\"targetVersion\":\"1.22.6-gke.300\"}",
@@ -149,11 +165,13 @@
         "publish_time": "2023-01-13T19:51:24.884Z",
         "data": "Zm9vYmFy"
     }
-  log_message: "Unknown resource type `SOME_TYPE` encountered"
+  log_entry: "Unknown resource type `SOME_TYPE` encountered"
+  plain_text: "test-cluster unknown resource type SOME_TYPE"
+  markdown: "*`test-cluster`* unknown resource type `SOME_TYPE` encountered on `UpgradeEvent`"
 
 ## UnknownEvent
-- description: "UnknownEvent"
-  message_json: |
+- name: "UnknownEvent"
+  message: |
     {
         "attributes": {
             "payload": "{\"someField\":\"some value\",\"anotherField\":\"another value\",\"releaseChannel\":{\"channel\":\"REGULAR\"}}",
@@ -166,10 +184,12 @@
         "publish_time": "2023-01-13T19:51:24.884Z",
         "data": "UmVjZWl2ZWQgdW5rbm93biBldmVudCBmb3IgdGhpcyBjbHVzdGVy"
     }
-  log_message: "Unknown message type `type.googleapis.com/google.container.v1beta1.UnknownEvent` encountered: Received unknown event for this cluster"
+  log_entry: "Unknown message type `type.googleapis.com/google.container.v1beta1.UnknownEvent` encountered: Received unknown event for this cluster"
+  plain_text: "test-cluster received event of unknown type"
+  markdown: "`test-cluster` received event of unknown type"
 
-- description: "UnknownEvent:EmptyPayload"
-  message_json: |
+- name: "UnknownEvent:EmptyPayload"
+  message: |
     {
         "attributes": {
             "payload": "{}",
@@ -182,17 +202,25 @@
         "publish_time": "2023-01-13T19:51:24.884Z",
         "data": "VW5rbm93biBldmVudCB3aXRoIGVtcHR5IHBheWxvYWQ="
     }
-  log_message: "Unknown message type `type.googleapis.com/google.container.v1beta1.UnknownEvent` encountered: Unknown event with empty payload"
+  log_entry: "Unknown message type `type.googleapis.com/google.container.v1beta1.UnknownEvent` encountered: Unknown event with empty payload"
+  plain_text: "test-cluster received event of unknown type"
+  markdown: "`test-cluster` received event of unknown type"
 
 ## InvalidMessage
-- description: "InvalidMessage:Empty"
-  message_json: "{}"
-  log_message: "Empty or invalid payload"
+- name: "InvalidMessage:Empty"
+  message: "{}"
+  log_entry: "Empty or invalid payload"
+  plain_text: "empty or invalid payload"
+  markdown: "empty or invalid payload"
 
-- description: InvalidMessage:MissingAttributes
-  message_json: '{"data": "bG9yZW0gaXBzdW0="}'
-  log_message: "Empty or invalid payload: lorem ipsum"
+- name: InvalidMessage:MissingAttributes
+  message: '{"data": "bG9yZW0gaXBzdW0="}'
+  log_entry: "Empty or invalid payload: lorem ipsum"
+  plain_text: "empty or invalid payload"
+  markdown: "empty or invalid payload"
 
-- description: InvalidMessage:MissingData
-  message_json: '{"attributes":{"type_url":"SOME_TYPE"}}'
-  log_message: "Empty or invalid payload"
+- name: InvalidMessage:MissingData
+  message: '{"attributes":{"type_url":"SOME_TYPE"}}'
+  log_entry: "Empty or invalid payload"
+  plain_text: "empty or invalid payload"
+  markdown: "empty or invalid payload"

@@ -56,38 +56,31 @@ fn env_or_default<F: FromStr>(key: &str, default: &str) -> Result<F, F::Err> {
 /// When the type_url doesn't match a known type, as long as the message can
 /// be deserialized, data and type fields will be used to construct a message.
 ///
-async fn handler(Json(psm): Json<PubSubMessage>) -> Result<String, ()> {
-    let subscription = psm.subscription;
+async fn handler(Json(psm): Json<PubSubMessage>) {
     let message = match std::env::var("GCP_PROJECT") {
         Ok(project_name) => psm.message.with_project_name(project_name),
         _ => psm.message,
     };
-    let formatted = message.fmt();
-    let mut slack_message = None::<String>;
+    let subscription = psm.subscription;
+    let log_entry = message.log_entry();
+    let slack_message;
 
+    // When SLACK_WEBHOOK is set, format message and post to Incoming Webhook
     if let Ok(_webhook) = std::env::var("SLACK_WEBHOOK") {
-        // UpgradeAvailableEvent messages will be sent for every node pool on a cluster
-        // creating quite the flood of messages and so should never be posted to Slack.
+        slack_message = Some(serde_json::to_string::<WebhookMessage>(&(&message).into()).unwrap());
+
+        // GKE sends UpgradeAvailableEvent messages for each node pool in a cluster
+        // causing quite the flood of messages. These will not be sent to Slack.
         if !message.attributes.is_node_pool_upgrade_available_event() {
-            slack_message =
-                Some(serde_json::to_string::<WebhookMessage>(&(&message).into()).unwrap());
-
             // TODO Implement posting JSON message to Slack webhook
-            // When unset, will post to default channel on Incoming Webhook configuration
-            // "SLACK_CHANNEL" env var determines which channel the message sends to
-
-            // Include webhook message in log entry when debug logging is enabled
-
-            // Post formatted message to Slack webhook
-            // "SLACK_WEBHOOK" env var is the URL of the Incoming Webhook
         }
+    } else {
+        slack_message = None;
     }
 
     if event_enabled!(Level::DEBUG) {
-        debug!(msg = format_args!("{:#?}", message), subscription, slack_message, "{formatted}");
+        debug!(msg = format_args!("{:#?}", message), subscription, slack_message, "{log_entry}");
     } else {
-        info!("{formatted}");
+        info!("{log_entry}");
     }
-
-    Ok(formatted)
 }
