@@ -224,3 +224,75 @@ impl SlackMessage for Message {
         result
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::message::tests::test_cases;
+
+    #[test]
+    fn slack_plain_text() {
+        #[derive(serde::Serialize)]
+        struct Blocks {
+            blocks: Vec<serde_json::Value>,
+        }
+
+        for test in test_cases() {
+            let mut message = match serde_json::from_str::<Message>(&test.message_json) {
+                Ok(m) => m,
+                Err(e) => panic!("{} failed: {e} {:#?}", test.description, test.message_json),
+            };
+
+            if let Some(project_name) = test.project_name {
+                message = message.with_project_name(project_name.to_string());
+            }
+
+            println!("{}\n", message.slack_plain_text());
+        }
+    }
+
+    #[test]
+    fn slack_block_text() {
+        #[derive(serde::Serialize)]
+        struct Blocks {
+            blocks: Vec<serde_json::Value>,
+        }
+
+        for test in test_cases() {
+            let mut message = match serde_json::from_str::<Message>(&test.message_json) {
+                Ok(m) => m,
+                Err(e) => panic!("{} failed: {e} {:#?}", test.description, test.message_json),
+            };
+
+            if let Some(project_name) = test.project_name {
+                message = message.with_project_name(project_name.to_string());
+            }
+
+            println!("{}\n", message.slack_block_text());
+        }
+    }
+
+    #[test]
+    fn slack_blocks() {
+        #[derive(serde::Serialize)]
+        struct Blocks {
+            blocks: Vec<serde_json::Value>,
+        }
+
+        for test in test_cases() {
+            let mut message = match serde_json::from_str::<Message>(&test.message_json) {
+                Ok(m) => m,
+                Err(e) => panic!("{} failed: {e} {:#?}", test.description, test.message_json),
+            };
+
+            if let Some(project_name) = test.project_name {
+                message = message.with_project_name(project_name.to_string());
+            }
+
+            println!(
+                "{}\n",
+                serde_json::to_string(&Blocks { blocks: message.slack_blocks() }).unwrap()
+            );
+        }
+    }
+}
