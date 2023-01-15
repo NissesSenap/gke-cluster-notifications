@@ -28,15 +28,11 @@ async fn main() {
     );
     info!(listen_addr = listen_addr.to_string(), "starting server");
 
-    axum::Server::bind(&listen_addr)
-        .serve(
-            Router::new()
-                .route("/", post(handler))
-                .route("/health", get(|| async { "UP" }))
-                .into_make_service(),
-        )
-        .await
-        .unwrap()
+    axum::Server::bind(&listen_addr).serve(router().into_make_service()).await.unwrap()
+}
+
+fn router() -> Router {
+    Router::new().route("/", post(handler)).route("/health", get(|| async { "UP" }))
 }
 
 fn env_or_default<F: FromStr>(key: &str, default: &str) -> Result<F, F::Err> {
@@ -99,5 +95,45 @@ async fn handler(Json(psm): Json<PubSubMessage>) {
         );
     } else {
         info!("{log_entry}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+    use axum_server::service::SendService;
+    use tower::ServiceExt;
+
+    #[tokio::test]
+    async fn empty_object() {
+        let (status, response) = post("/", "{}").await;
+
+        assert_eq!(status, StatusCode::OK, "expected {} received {}", StatusCode::OK, status);
+        assert_eq!(response, "", "empty payload should return empty response");
+    }
+
+    async fn post(uri: &str, body: &str) -> (StatusCode, String) {
+        let router = router().into_service();
+        let response = router
+            .oneshot(
+                Request::builder()
+                    .uri(uri)
+                    .method("POST")
+                    .header("Content-Type", "application/json")
+                    .body(Body::from(body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        (
+            response.status(),
+            String::from_utf8(hyper::body::to_bytes(response.into_body()).await.unwrap().to_vec())
+                .unwrap(),
+        )
     }
 }

@@ -7,7 +7,8 @@ use serde::{de, Deserialize, Deserializer};
 use self::attributes::payload::{Payload, ResourceType};
 use self::attributes::Attributes;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
 pub struct PubSubMessage {
     pub message: Message,
     pub subscription: String,
