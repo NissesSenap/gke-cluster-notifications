@@ -25,12 +25,6 @@ pub struct Message {
     data: String,
 }
 
-impl From<String> for Message {
-    fn from(value: String) -> Self {
-        serde_json::from_str::<Message>(&value).unwrap()
-    }
-}
-
 impl Message {
     pub fn with_project_name(self, project_name: String) -> Self {
         Self { attributes: self.attributes.with_project_name(project_name), ..self }
