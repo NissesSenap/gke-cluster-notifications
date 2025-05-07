@@ -1,4 +1,4 @@
-FROM rust:1.86 as build
+FROM rust:1.86 AS build
 
 RUN cargo new --bin app
 WORKDIR /app
