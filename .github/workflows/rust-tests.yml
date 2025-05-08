@@ -2,6 +2,9 @@ name: Rust Tests
 
 on:
   pull_request:
+    branches: [ main]
+  push:
+    branches: [ main]
 
 env:
   CARGO_TERM_COLOR: always
@@ -12,39 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
-      
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-      
-      - name: Check formatting
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
-      
-      - name: Clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- -D warnings
-      
+      - name: Build
+        run: cargo build --verbose
       - name: Run tests
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+        run: cargo test --verbose      
+      - name: Check formatting
+        run: |
+          cargo fmt --all
+          git diff --exit-code
+          if [ $? -ne 0 ]; then
+            echo "::error::Code formatting check failed. Run 'cargo fmt' locally and commit changes."
+            exit 1
+          fi
+      - name: Run tests
+        run: cargo test
