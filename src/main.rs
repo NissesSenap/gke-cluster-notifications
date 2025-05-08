@@ -103,7 +103,7 @@ async fn handler(Json(psm): Json<PubSubMessage>) {
 mod tests {
     use super::*;
     use axum::{
-        body::{Body, to_bytes},
+        body::{to_bytes, Body},
         http::{Request, StatusCode},
     };
     use tower::ServiceExt;
@@ -132,8 +132,10 @@ mod tests {
 
         (
             response.status(),
-            String::from_utf8(to_bytes(response.into_body(), 16 * 1024 * 1024).await.unwrap().to_vec())
-                .unwrap(),
+            String::from_utf8(
+                to_bytes(response.into_body(), 16 * 1024 * 1024).await.unwrap().to_vec(),
+            )
+            .unwrap(),
         )
     }
 }

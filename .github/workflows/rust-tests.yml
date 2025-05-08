@@ -1,0 +1,31 @@
+name: Rust Tests
+
+on:
+  pull_request:
+    branches: [ main]
+  push:
+    branches: [ main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose      
+      - name: Check formatting
+        run: |
+          cargo fmt --all
+          git diff --exit-code
+          if [ $? -ne 0 ]; then
+            echo "::error::Code formatting check failed. Run 'cargo fmt' locally and commit changes."
+            exit 1
+          fi
+      - name: Run tests
+        run: cargo test
