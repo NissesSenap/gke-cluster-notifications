@@ -2,6 +2,7 @@ mod message;
 
 use axum::routing::{get, post};
 use axum::{Json, Router};
+use axum_server::Server;
 use message::slack::WebhookMessage;
 use message::PubSubMessage;
 use std::{env, net::SocketAddr, str::FromStr};
@@ -28,7 +29,7 @@ async fn main() {
     );
     info!(listen_addr = listen_addr.to_string(), "starting server");
 
-    axum::Server::bind(&listen_addr).serve(router().into_make_service()).await.unwrap()
+    Server::bind(listen_addr).serve(router().into_make_service()).await.unwrap()
 }
 
 fn router() -> Router {
@@ -102,10 +103,9 @@ async fn handler(Json(psm): Json<PubSubMessage>) {
 mod tests {
     use super::*;
     use axum::{
-        body::Body,
+        body::{Body, to_bytes},
         http::{Request, StatusCode},
     };
-    use axum_server::service::SendService;
     use tower::ServiceExt;
 
     #[tokio::test]
@@ -132,7 +132,7 @@ mod tests {
 
         (
             response.status(),
-            String::from_utf8(hyper::body::to_bytes(response.into_body()).await.unwrap().to_vec())
+            String::from_utf8(to_bytes(response.into_body(), 16 * 1024 * 1024).await.unwrap().to_vec())
                 .unwrap(),
         )
     }

@@ -1,4 +1,4 @@
-FROM rust:1.66 as build
+FROM rust:1.86 AS build
 
 RUN cargo new --bin app
 WORKDIR /app
@@ -13,7 +13,7 @@ COPY ./src ./src
 
 RUN cargo build --release
 
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 RUN apt-get update \
     && apt-get install -y ca-certificates \
